@@ -36,12 +36,17 @@ module.exports = {
 
             // 3. Обновляем исходное сообщение
             const originalEmbed = interaction.message.embeds[0];
-            
+
             const squadsString = updatedEvent.squads.map(s => `> **${s.name}**: 0/${s.limit}`).join('\n');
             const otherFields = originalEmbed.fields.filter(f => f.name !== 'Отряды');
-            const newFields = [...otherFields, { name: 'Отряды', value: squadsString }];
-
-            const newEmbed = EmbedBuilder.from(originalEmbed).setFields(newFields);
+            
+            const newEmbed = new EmbedBuilder()
+                .setTitle(originalEmbed.title)
+                .setDescription(originalEmbed.description)
+                .setColor(originalEmbed.color)
+                .setFooter(originalEmbed.footer)
+                .setFields(otherFields) // Сначала добавляем старые поля
+                .addFields({ name: 'Отряды', value: squadsString }); // Затем добавляем обновленное
 
             // Используем interaction.message.edit для обновления исходного сообщения
             await interaction.message.edit({

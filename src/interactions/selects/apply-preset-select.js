@@ -31,9 +31,14 @@ module.exports = {
 
             const squadsString = updatedEvent.squads.map(s => `> **${s.name}**: 0/${s.limit}`).join('\n');
             const otherFields = originalEmbed.fields.filter(f => f.name !== 'Отряды');
-            const newFields = [...otherFields, { name: 'Отряды', value: squadsString }];
 
-            const newEmbed = EmbedBuilder.from(originalEmbed).setFields(newFields);
+            const newEmbed = new EmbedBuilder()
+                .setTitle(originalEmbed.title)
+                .setDescription(originalEmbed.description)
+                .setColor(originalEmbed.color)
+                .setFooter(originalEmbed.footer)
+                .setFields(otherFields)
+                .addFields({ name: 'Отряды', value: squadsString });
 
             await originalMessage.edit({
                 embeds: [newEmbed]
