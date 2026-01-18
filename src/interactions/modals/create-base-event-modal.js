@@ -9,7 +9,7 @@ module.exports = {
      * @param {Bot} client
      */
     async execute(interaction, client) {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply();
         console.log('[Handler /create-base-event-modal.js] -> Interaction deferred.');
 
         const name = interaction.fields.getTextInputValue('event_name');
@@ -21,13 +21,12 @@ module.exports = {
         try {
             console.log('[Handler /create-base-event-modal.js] -> Sending API request to create event...');
             
-            // Возвращаемся к минимальному набору данных
             const eventData = {
                 name,
                 description,
                 start_at: dateTime,
                 discord_guild_id: interaction.guild.id,
-                region: 'eu', // Это поле оставим, так как оно все еще required
+                region: 'eu',
             };
 
             const response = await client.api.createEvent(eventData);
@@ -71,12 +70,12 @@ module.exports = {
                 );
 
             await interaction.followUp({
-                content: '✅ Событие создано как черновик. Теперь вы можете настроить отряды.',
+                content: `✅ **Событие создано!** Автор: ${interaction.user}. Теперь офицеры могут настроить отряды.`,
                 embeds: [embed],
                 components: [buttons],
-                ephemeral: true
+                ephemeral: false
             });
-            console.log('[Handler /create-base-event-modal.js] -> Control panel sent to user.');
+            console.log('[Handler /create-base-event-modal.js] -> Control panel sent to channel.');
 
         } catch (error) {
             console.error('[Handler /create-base-event-modal.js] -> ❌ API Error:', error.response?.data || error.message);

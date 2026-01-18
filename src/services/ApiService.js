@@ -20,6 +20,15 @@ class ApiService {
         return this.client.get(`/events/${eventId}`);
     }
 
+    async createSquad(squadData) {
+        const { event_id, ...payload } = squadData;
+        return this.client.post(`/events/${event_id}/squads`, payload);
+    }
+
+    async applyPresetToEvent(eventId, presetId) {
+        return this.client.post(`/events/${eventId}/apply-preset`, { preset_id: presetId });
+    }
+
     async publishEvent(eventId) {
         return this.client.post(`/events/${eventId}/publish`);
     }
@@ -41,14 +50,6 @@ class ApiService {
 
     async applyPreset(squadId, presetId) {
         return this.client.post(`/squads/${squadId}/presets`, {preset_id: presetId});
-    }
-    
-    async applyPresetToEvent(eventId, presetId) {
-        return this.client.post(`/events/${eventId}/apply-preset`, { preset_id: presetId });
-    }
-
-    async createSquad(eventId, squadData) {
-        return this.client.post(`/events/${eventId}/squads`, squadData);
     }
 
     async setupGuild(data) {
