@@ -1,4 +1,4 @@
-const { StringSelectMenuInteraction, EmbedBuilder } = require('discord.js');
+const { StringSelectMenuInteraction, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const Bot = require('../../Bot');
 
 module.exports = {
@@ -19,15 +19,12 @@ module.exports = {
         try {
             console.log('[Handler /apply-preset-select.js] -> Sending API request to apply preset...');
             await client.api.applyPresetToEvent(eventId, presetId);
-            console.log('[Handler /apply-preset-select.js] -> API Success! Preset applied.');
-
-            console.log(`[Handler /apply-preset-select.js] -> Fetching updated event info for ID: ${eventId}`);
-            const response = await client.api.getEventInfo(eventId);
-            const updatedEvent = response.data.data;
 
             // Находим исходное сообщение и правильно обновляем его
             const originalMessage = await interaction.channel.messages.fetch(interaction.message.reference.messageId);
             const originalEmbed = originalMessage.embeds[0];
+            const response = await client.api.getEventInfo(eventId);
+            const updatedEvent = response.data.data;
 
             const squadsString = updatedEvent.squads.map(s => `> **${s.name}**: 0/${s.limit}`).join('\n');
             const otherFields = originalEmbed.fields.filter(f => f.name !== 'Отряды');
@@ -40,8 +37,43 @@ module.exports = {
                 .setFields(otherFields)
                 .addFields({ name: 'Отряды', value: squadsString });
 
+            const newActionRowComponents = [
+                new ButtonBuilder()
+                    .setCustomId(`event_apply-preset_${updatedEvent.id}`)
+                    .setLabel('Применить пресет')
+                    .setStyle(ButtonStyle.Primary)
+                    .setEmoji('📝'),
+                new ButtonBuilder()
+                    .setCustomId(`event_create-squad_${updatedEvent.id}`)
+                    .setLabel('Создать отряд')
+                    .setStyle(ButtonStyle.Secondary)
+                    .setEmoji('🛠️'),
+                new ButtonBuilder()
+                    .setCustomId(`event_publish_${updatedEvent.id}`)
+                    .setLabel('Опубликовать')
+                    .setStyle(ButtonStyle.Success)
+                    .setEmoji('✅'),
+                new ButtonBuilder()
+                    .setCustomId(`event_delete_${updatedEvent.id}`)
+                    .setLabel('Удалить')
+                    .setStyle(ButtonStyle.Danger)
+                    .setEmoji('🗑️')
+            ];
+
+            if (updatedEvent.squads.length > 0) {
+                newActionRowComponents.push(
+                    new ButtonBuilder()
+                        .setCustomId(`event_edit-squads_${updatedEvent.id}`)
+                        .setLabel('Редактировать отряды')
+                        .setStyle(ButtonStyle.Secondary)
+                        .setEmoji('⚙️')
+                );
+            }
+            const newActionRow = new ActionRowBuilder().addComponents(newActionRowComponents);
+
             await originalMessage.edit({
-                embeds: [newEmbed]
+                embeds: [newEmbed],
+                components: [newActionRow]
             });
             console.log('[Handler /apply-preset-select.js] -> Control panel updated.');
 

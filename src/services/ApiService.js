@@ -29,6 +29,10 @@ class ApiService {
         return this.client.post(`/events/${eventId}/apply-preset`, { preset_id: presetId });
     }
 
+    async deleteSquad(eventId, squadId) {
+        return this.client.delete(`/events/${eventId}/squads/${squadId}`);
+    }
+
     async publishEvent(eventId) {
         return this.client.post(`/events/${eventId}/publish`);
     }

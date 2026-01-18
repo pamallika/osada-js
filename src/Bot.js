@@ -39,6 +39,11 @@ class Bot extends Client {
         for (const file of files) {
             try {
                 const module = require(path.join(fullPath, file));
+
+                if (typeof module === 'object' && Object.keys(module).length === 0) {
+                    continue;
+                }
+
                 const instance = typeof module === 'function' ? new module() : module;
 
                 if (collection) {
@@ -66,7 +71,6 @@ class Bot extends Client {
         });
     }
 
-    // ОБНОВЛЕННЫЙ РОУТИНГ С ЛОГИРОВАНИЕМ
     async handleInteraction(interaction) {
         console.log(`\n[Router] New interaction received. Type: ${interaction.type}, CustomId: ${interaction.customId || 'N/A'}`);
 
@@ -88,25 +92,17 @@ class Bot extends Client {
         }
 
         const customId = interaction.customId;
-        if (!customId) return;
-
-        let collection;
-        if (interaction.isButton()) {
-            collection = this.buttons;
-            console.log('[Router] -> Interaction is a button.');
-        } else if (interaction.isModalSubmit()) {
-            collection = this.modals;
-            console.log('[Router] -> Interaction is a modal submit.');
-        } else if (interaction.isAnySelectMenu()) {
-            collection = this.selects;
-            console.log('[Router] -> Interaction is a select menu.');
-        } else {
+        if (typeof customId !== 'string' || !customId) {
             return;
         }
 
-        // Новый, более гибкий поиск обработчика
-        const handlerName = Array.from(collection.keys()).find(key => customId.startsWith(key));
+        let collection;
+        if (interaction.isButton()) collection = this.buttons;
+        else if (interaction.isModalSubmit()) collection = this.modals;
+        else if (interaction.isAnySelectMenu()) collection = this.selects;
+        else return;
 
+        const handlerName = Array.from(collection.keys()).find(key => customId.startsWith(key));
         if (handlerName) {
             console.log(`[Router] -> Found handler: '${handlerName}'. Routing...`);
             return this.routeInteraction(interaction, collection, handlerName);
